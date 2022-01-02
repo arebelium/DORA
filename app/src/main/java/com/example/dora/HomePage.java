@@ -3,7 +3,6 @@ package com.example.dora;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -13,6 +12,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import android.graphics.Color;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,6 +36,7 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
     GoogleMap googleMap;
     MarkerOptions origin, destination;
     int i = 0;
+    private static final String GOOGLE_API_KEY = "AIzaSyCHhKekfTMkG1yYlnOjSV6o9RHO8s2z-UE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,10 +98,31 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
                     destination = new MarkerOptions().position(point);
                     googleMap.addMarker(destination);
                     String url = getDirectionsUrl(origin.getPosition(), destination.getPosition());
-
                     DownloadTask downloadTask = new DownloadTask();
-
                     downloadTask.execute(url);
+                    Location startPoint=new Location("locationA");
+                    startPoint.setLatitude(origin.getPosition().latitude);
+                    startPoint.setLongitude(origin.getPosition().longitude);
+
+                    Location endPoint=new Location("locationB");
+                    endPoint.setLatitude(destination.getPosition().latitude);
+                    endPoint.setLongitude(destination.getPosition().longitude);
+
+                    double distance=startPoint.distanceTo(endPoint);
+                    String type = "";
+                    StringBuilder googlePlacesUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+                    googlePlacesUrl.append("location=" + (origin.getPosition().latitude+destination.getPosition().latitude)/2 + "," + (origin.getPosition().longitude+destination.getPosition().longitude)/2);
+                    googlePlacesUrl.append("&radius=" + distance/2);
+                    googlePlacesUrl.append("&types=" + type);
+                    googlePlacesUrl.append("&sensor=true");
+                    googlePlacesUrl.append("&key=" + GOOGLE_API_KEY);
+
+                    GooglePlacesReadTask googlePlacesReadTask = new GooglePlacesReadTask();
+                    Object[] toPass = new Object[2];
+                    toPass[0] = googleMap;
+                    toPass[1] = googlePlacesUrl.toString();
+                    googlePlacesReadTask.execute(toPass);
+
                     i = 0;
                 }
             }
@@ -113,9 +135,7 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
 
         @Override
         protected String doInBackground(String... url) {
-
             String data = "";
-
             try {
                 data = downloadUrl(url[0]);
             } catch (Exception e) {
@@ -171,7 +191,6 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
 
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
-        // Parsing the data in non-ui thread
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
 
