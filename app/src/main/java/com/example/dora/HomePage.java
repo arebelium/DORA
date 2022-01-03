@@ -1,5 +1,6 @@
 package com.example.dora;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.annotation.NonNull;
 
@@ -11,12 +12,18 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -51,7 +58,6 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
     }
 
     HomeFragment homeFragment = new HomeFragment();
-    NewTripFragment newTripFragment = new NewTripFragment();
     ObjectsFragment objectsFragment = new ObjectsFragment();
     ProfileFragment profileFragment = new ProfileFragment();
 
@@ -74,6 +80,7 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
 
             case R.id.objects:
                 getSupportFragmentManager().beginTransaction().replace(R.id.flFragment, objectsFragment).commit();
+
                 return true;
 
             case R.id.profile:
@@ -100,19 +107,34 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
                     String url = getDirectionsUrl(origin.getPosition(), destination.getPosition());
                     DownloadTask downloadTask = new DownloadTask();
                     downloadTask.execute(url);
-                    Location startPoint=new Location("locationA");
+                    Location startPoint = new Location("locationA");
                     startPoint.setLatitude(origin.getPosition().latitude);
                     startPoint.setLongitude(origin.getPosition().longitude);
 
-                    Location endPoint=new Location("locationB");
+                    Location endPoint = new Location("locationB");
                     endPoint.setLatitude(destination.getPosition().latitude);
                     endPoint.setLongitude(destination.getPosition().longitude);
 
-                    double distance=startPoint.distanceTo(endPoint);
+                    double distance = startPoint.distanceTo(endPoint);
+                    SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
+                    boolean park = prefs.getBoolean("park", false);
+                    boolean restaurant = prefs.getBoolean("restaurant", false);
+                    boolean museum = prefs.getBoolean("museum", false);
                     String type = "";
+                    if (park) type = "park";
+                    if (restaurant && type.equals("")) {
+                        type = "restaurant";
+                    } else if (restaurant) {
+                        type = type + "||" + "restaurant";
+                    }
+                    if (museum && type.equals("")) {
+                        type = "museum";
+                    } else if (museum) {
+                        type = type + "||" + "museum";
+                    }
                     StringBuilder googlePlacesUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-                    googlePlacesUrl.append("location=" + (origin.getPosition().latitude+destination.getPosition().latitude)/2 + "," + (origin.getPosition().longitude+destination.getPosition().longitude)/2);
-                    googlePlacesUrl.append("&radius=" + distance/2);
+                    googlePlacesUrl.append("location=" + (origin.getPosition().latitude + destination.getPosition().latitude) / 2 + "," + (origin.getPosition().longitude + destination.getPosition().longitude) / 2);
+                    googlePlacesUrl.append("&radius=" + distance / 2);
                     googlePlacesUrl.append("&types=" + type);
                     googlePlacesUrl.append("&sensor=true");
                     googlePlacesUrl.append("&key=" + GOOGLE_API_KEY);
