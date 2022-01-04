@@ -43,7 +43,7 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
     GoogleMap googleMap;
     MarkerOptions origin, destination;
     int i = 0;
-    private static final String GOOGLE_API_KEY = "AIzaSyCHhKekfTMkG1yYlnOjSV6o9RHO8s2z-UE";
+    private static final String GOOGLE_API_KEY = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,7 +180,7 @@ public class HomePage extends AppCompatActivity implements BottomNavigationView.
         String mode = "mode=driving";
         String parameters = str_origin + "&" + str_dest + "&" + mode;
         String output = "json";
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + "AIzaSyCHhKekfTMkG1yYlnOjSV6o9RHO8s2z-UE";
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + GOOGLE_API_KEY;
         return url;
     }
 
